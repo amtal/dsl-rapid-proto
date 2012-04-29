@@ -38,6 +38,113 @@ Parsers and printers:
 ---------------------
 
 ```javascript
+// AST -> consistently pretty-printed notes
+ometa PPrint {
+  packets = packet*:ps -> ps.join('\n'),
+  packet = ['p' id:id :size :name [field*:fs]] -> (id+' '+size+'\t'+name+' \t'+fs.join(' '))
+         | ['p' id:id 'undefined' :desc]      -> (id+' ?\t'+desc),
+  id = :h -> h.toString(16),
+  field = ['const' id:n] -> n
+        | [['BYTES' :len] :name] -> ('BYTES['+len+'] '+name)
+        | :s -> ('['+s.join(' ')+']')
+}
+
+
+// Utility class for generating C code
+ometa C {
+  // lazy C identifier validity - doesn't do 1st letter or reserved words
+  valid = :s -> s.replace(/[^A-Za-z_0-9]/g, '_').toLowerCase(),
+  // chops a valid identifier off a string, and sticks any tail into a comment
+  ident = [idLabel:l ' '* anything*:c] -> [l.toLowerCase(), c.length==0?'':'\t// '+c.join('')],
+  idLabel = idWord:x idWord:y   -> (x+'_'+y)
+          | idWord:x            -> x,
+  idWord = ' '* (letter | '_')+:w -> w.join('')
+}
+
+// Utility function for generating non-clashing struct field names
+field = function(type,txt) {
+  var name = txt[0]
+  if (Structs.sym[name]===undefined) {
+     Structs.sym[name]=0
+  } else {
+     Structs.sym[name]++
+     name += Structs.sym[name]
+  }
+  return ('\t'+type+'\t'+name+';'+txt[1])
+}
+
+// AST -> struct definitions
+ometa Structs <: C {
+  // structure
+  packets = packet*:ps -> ps.join(''),
+  packet = ['p' :id :size valid:name [field*:fs]]   {'/*0x'+id.toString(16)+'*/ '}:comment
+                                                    {' {\n' + fs.join('\n') + '\n}\n'}:body
+                                                 -> {Structs.sym={}; 'struct '+comment+name+body}
+         | ['p' :id 'undefined' :desc]      -> ('// 0x'+id.toString(16)+' '+desc+'\n'),
+  field = ['const' ksym:k]                -> field('u8',k)
+        | ['BYTE'       remap('u8'):n]  -> n
+        | ['WORD'       remap('u16'):n]  -> n
+        | ['DWORD'      remap('u32'):n] -> n
+        | ['BUFFER'     remap('u8*'):n] -> n
+        | ['CSTRING'    remap('char*'):n] -> n
+        | [['BYTES' :s] ident:n] -> {n[0]+='['+s+']'; field('u8',n)}
+        | :n -> ('\t// UNHANDLED GENERATOR: '+n),
+  // I used remap to play with arguments, but really it loses clarity by muddling 
+  // the split between input and output. Doubt it's worth the reduction in repetition.
+  remap :type = ident:txt -> field(type,txt),
+  ksym = :msg -> ['k', '\t// '+msg]
+};
+Structs.sym={}; // duplicate symbol counter
+
+defines = """
+#define u8 unsigned char;
+#define u16 unsigned short;
+#define u32 unsigned int;
+"""
+
+// AST -> default struct value definitions, with constants filled in
+ometa Encode <: C {
+  packets = packet*:ps -> ps.join(''),
+  packet = ['p' :id :size valid:name [field*:fs]] -> 
+                       ('const struct '+name+' '+name.toUpperCase()+' = {'+fs.join(',')+'};\n')
+         | ['p' :id 'undefined' :desc]        -> '',
+  field = ['const' hex:n] -> n
+        | [['BYTES' :len] :name] -> {var s='{'; for (var i=0;i<len;i++) {s+=(i==len-1)?'0':'0,';}; s+='}'}
+        | :s -> '0',
+  hex = :h -> ('0x'+h.toString(16))
+}
+
+// AST -> 256-row lookup table for packet size
+ometa SizeLUT {
+  packets = packet* -> {
+     var s='const int size_lut[256] = {';
+     for(var i=0;i<256;i++){
+         s+=SizeLUT.lut[i]===undefined?'-1':SizeLUT.lut[i];
+         if(i!=255) s+=',';
+     }; 
+     s+='};\n'
+  },
+  packet = ['p' :id size:s :name :fields] -> {SizeLUT.lut[id]=s}
+         | ['p' :id 'undefined' :desc],
+  size = '?' -> '0'
+       | '*' -> '-1'
+       | number
+}
+SizeLUT.lut = {}
+
+defines += """
+#define SIZE_UNKNOWN 0
+#define SIZE_DYNAMIC -1
+"""
+
+
+// Packet notes -> AST
+//
+// Since these are collaborative freeform notes from the internet, edited by a
+// ton of different people, the parser handles many edge cases.
+//
+// This is a worst-case DSL, if I controlled the design the parser would be an
+// order of magnitude simpler.
 ometa CleanParser {
   // literals
   number = digit+:ds -> parseInt(ds.join('')),
@@ -73,6 +180,8 @@ ometa CleanParser {
   packets = header* (spaces packet)*:ps -> ps
 }
 
+// More edge cases I factored out. This handles the notes with almost no
+// modifications!
 ometa Parser <: CleanParser {
   length = "NULLSTRING[" number:d "]" -> ['BYTES',d]
          | ^length
@@ -97,99 +206,5 @@ ometa Parser <: CleanParser {
   packet = ^packet
          | hexLit:id sp (~'\n' anything)*:msg -> ['p',id,'undefined',msg.join('').replace(/[-\n(  )]/g,'')]
 }
-
-
-ometa PPrint {
-  packets = packet*:ps -> ps.join('\n'),
-  packet = ['p' id:id :size :name [field*:fs]] -> (id+' '+size+'\t'+name+' \t'+fs.join(' '))
-         | ['p' id:id 'undefined' :desc]      -> (id+' ?\t'+desc),
-  id = :h -> h.toString(16),
-  field = ['const' id:n] -> n
-        | [['BYTES' :len] :name] -> ('BYTES['+len+'] '+name)
-        | :s -> ('['+s.join(' ')+']')
-}
-
-
-ometa C {
-  // lazy C identifier validity - doesn't do 1st letter or reserved words
-  valid = :s -> s.replace(/[^A-Za-z_0-9]/g, '_').toLowerCase(),
-  // chops a valid identifier off a string, and sticks any tail into a comment
-  ident = [idLabel:l ' '* anything*:c] -> [l.toLowerCase(), c.length==0?'':'\t// '+c.join('')],
-  idLabel = idWord:x idWord:y   -> (x+'_'+y)
-          | idWord:x            -> x,
-  idWord = ' '* (letter | '_')+:w -> w.join('')
-}
-
-field = function(type,txt) {
-  var name = txt[0]
-  if (Structs.sym[name]===undefined) {
-     Structs.sym[name]=0
-  } else {
-     Structs.sym[name]++
-     name += Structs.sym[name]
-  }
-  return ('\t'+type+'\t'+name+';'+txt[1])
-}
-
-ometa Structs <: C {
-  // structure
-  packets = packet*:ps -> ps.join(''),
-  packet = ['p' :id :size valid:name [field*:fs]]   {'/*0x'+id.toString(16)+'*/ '}:comment
-                                                    {' {\n' + fs.join('\n') + '\n}\n'}:body
-                                                 -> {Structs.sym={}; 'struct '+comment+name+body}
-         | ['p' :id 'undefined' :desc]      -> ('// 0x'+id.toString(16)+' '+desc+'\n'),
-  field = ['const' ksym:k]                -> field('u8',k)
-        | ['BYTE'       remap('u8'):n]  -> n
-        | ['WORD'       remap('u16'):n]  -> n
-        | ['DWORD'      remap('u32'):n] -> n
-        | ['BUFFER'     remap('u8*'):n] -> n
-        | ['CSTRING'    remap('char*'):n] -> n
-        | [['BYTES' :s] ident:n] -> {n[0]+='['+s+']'; field('u8',n)}
-        | :n -> ('\t// UNHANDLED GENERATOR: '+n),
-  // I used remap to play with arguments, but really it loses clarity by muddling 
-  // the split between input and output. Doubt it's worth the reduction in repetition.
-  remap :type = ident:txt -> field(type,txt),
-  ksym = :msg -> ['k', '\t// '+msg]
-};
-Structs.sym={}; // duplicate symbol counter
-
-defines = """
-#define u8 unsigned char;
-#define u16 unsigned short;
-#define u32 unsigned int;
-"""
-
-ometa Encode <: C {
-  packets = packet*:ps -> ps.join(''),
-  packet = ['p' :id :size valid:name [field*:fs]] -> 
-                       ('const struct '+name+' '+name.toUpperCase()+' = {'+fs.join(',')+'};\n')
-         | ['p' :id 'undefined' :desc]        -> '',
-  field = ['const' hex:n] -> n
-        | [['BYTES' :len] :name] -> {var s='{'; for (var i=0;i<len;i++) {s+=(i==len-1)?'0':'0,';}; s+='}'}
-        | :s -> '0',
-  hex = :h -> ('0x'+h.toString(16))
-}
-
-ometa SizeLUT {
-  packets = packet* -> {
-     var s='const int size_lut[256] = {';
-     for(var i=0;i<256;i++){
-         s+=SizeLUT.lut[i]===undefined?'-1':SizeLUT.lut[i];
-         if(i!=255) s+=',';
-     }; 
-     s+='};\n'
-  },
-  packet = ['p' :id size:s :name :fields] -> {SizeLUT.lut[id]=s}
-         | ['p' :id 'undefined' :desc],
-  size = '?' -> '0'
-       | '*' -> '-1'
-       | number
-}
-SizeLUT.lut = {}
-
-defines += """
-#define SIZE_UNKNOWN 0
-#define SIZE_DYNAMIC -1
-"""
 ```
 
