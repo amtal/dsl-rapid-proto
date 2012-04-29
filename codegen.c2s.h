@@ -1,5 +1,3 @@
-packets_c2s.h:
- 
 #define u8 unsigned char;
 #define u16 unsigned short;
 #define u32 unsigned int;
