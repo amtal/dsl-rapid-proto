@@ -1,0 +1,113 @@
+Number   Size   Effect:            Usage:
+----------------------------------------------------------------------------
+01   5   Walk            01 [WORD x] [WORD y]
+02   9   Walk to entity         02 [DWORD entity kind] [DWORD id]
+03   5   Run            03 [WORD x] [WORD y]
+04   9   Run to entity         04 [DWORD entity kind] [DWORD id]
+05   5   Shift Left Click Skill      05 [WORD x] [WORD y]
+06   9   Left Skill on unit      06 [DWORD entity kind] [DWORD id]
+07   9   Shift left skill on unit   07 [DWORD entity kind] [DWORD id]
+08   5   Shift Left skill (hold)      08 [WORD x] [WORD y]
+09   9   Left Skill on unit (hold)   09 [DWORD entity kind] [DWORD id]
+0a   9   Shift left skill unit (hold)   0a [DWORD entity kind] [DWORD id]
+0b   1   <Unknown>         0b
+0c   5   Right skill         0c [WORD x] [WORD y]
+0d   9   Right skill unit      0d [DWORD entity kind] [DWORD id]
+0e   9   Shift right skill unit      0e [DWORD entity kind] [DWORD id]
+0f   5   Right skill (hold)      0f [WORD x] [WORD y]
+10   9   Right skill unit (hold)      10 [DWORD entity kind] [DWORD id]
+11   9   Shift Right skill unit (hold)   11 [DWORD entity kind] [DWORD id]
+12   1   <Unknown>         12
+13   9   Interact (click) entity      13 [DWORD entity kind] [DWORD id]
+14   [Varies]Overhead Chat         14 00 00 [*char message] 00 00 00
+15   [Varies]Chat            15 01 00 [*char message] 00 00 00
+16   13   Pick item (ground)      16 04 00 00 00 [DWORD id] [DWORD inventory(0) or cursor (1)]
+17   5   Drop item (ground)      17 [DWORD id]
+18   17   Insert item in buffer      18 [DWORD id] [DWORD xpos] [DWORD ypos] [DWORD buffer]
+19   5   Remove item from buffer      19 [DWORD id]
+1a   9   Equip item         1a [DWORD id] [WORD position] 00 00
+1b   9   Swap 2 handed item      1b [DWORD id] [WORD position] 00 00
+1c   3   Remove body item      1c [WORD position]
+1d   9   Swap cursor item with body   1d [DWORD id] [WORD position] 00 00
+1e   9   Swap 2 1-handed items with a 2-handed item   1e [DWORD unknown] [DWORD unknown]
+1f   17   Swap cursor/buffer items   1f [DWORD cursor item id] [DWORD buffer item id] [DWORD xpos] [DWORD ypos]
+20   13   Activate buffer item      20 [DWORD id] [WORD x] 00 00 [WORD y] 00 00
+21   9   Stack items         21 [DWORD item to stack id] [DWORD item where it stacks id]
+22   5   Unstack items         22 [DWORD unknown]
+23   9   Item to belt         23 [DWORD id] [WORD x] [WORD y]
+24   5   Item from belt         24 [DWORD id]
+25   9   Switch belt item      25 [DWORD cursor item][DWORD belt item]
+26   13   Use belt item         26 [DWORD id] [DWORD shift key stats] [DWORD unknown]
+27   9   Identify item         27 [DWORD item id] [DWORD scroll id]
+28   9   Socket item         28 [DWORD item to socket id] [DWORD socketable item id]
+29   9   Scroll to book         29 [DWORD scroll id] [DWORD book id]
+2a   9   Item to cube (indirect)      2a [DWORD item id] [DWORD cube id]
+2b   --   Unused            -------------
+2c   --   Unused (Logged as hack)      -------------
+2d   --   Unused (Logged as hack)      -------------
+2e   --   Unknown            -------------
+2f   9   Initiate entity chat      2f [DWORD entity kind] [DWORD id]
+30   9   Terminate entity chat      30 [DWORD entity kind] [DWORD id]
+31   9   Quest message         31 [DWORD id] [DWORD message]
+32   17   Buy item from NPC buffer   32 [DWORD entity id] [DWORD item id] [DWORD tab] [DWORD cost]
+33   17   Sell item to NPC buffer      33 [DWORD entity id] [DWORD item id] [DWORD tab] [DWORD cost]
+34   5   Identify items with NPC      34 [DWORD entity id]
+35   17   Repair            35 [DWORD entity id] [DWORD item id] [DWORD tab] [DWORD cost?]
+36   9   Hire merc         36 [DWORD entity id] [DWORD merc id]
+37   5   Identify (from gamble)      37 [DWORD item id]
+38   13   Entity action         38 [DWORD action] [DWORD entity id] [DWORD complement]
+39   5   Purchase Life         39 [DWORD NPC id]
+3a   3   Add stat point         3a [WORD stat]
+3b   3   Add skill point         3b [WORD skill]
+3c   9   Select skill         3c [WORD skill] 00 [BYTE left (80) or right 00) skill] FF FF FF FF
+3d   5   Highlight a door      3d [DWORD object id]   (Logged as Mode (5) crash)
+3e   5   Activate Scroll of Inifuss   3e [DWORD scroll of infuss. id]
+3f   3   Play audio         3f [WORD sound message]
+40   1   Request Quest Data      40
+41   1   Resurrect         41
+42   --   Unknown/Unused         --------------
+43   --   Unknown/Unused         --------------
+44   17   Staff in orifice      44 [DWORD orifice entity kind] [DWORD orifice id] [DWORD staff id] [DWORD entity state]
+45   9   Change TP Location      45 [DWORD entity id] [WORD location] 00 00 (logged as hack)
+46   13   Have Merc Interact      46 [DWORD merc id] [DWORD entity id][DWORD entity type]
+47   13   Move Merc         47 [DWORD Merc ID] [WORD X] 00 00 [WORD Y] 00 00
+48   1   Turns off busy state      48
+49   9   Take WP/Close WP      49 [DWORD wp id] [BYTE destination] 00 00 00
+4a   --   Unused            --------------
+4b   9   Request Entity Update      4b [DWORD entity type][DWORD entity id]
+4c   5   Transmorgify   4c [DWORD Object ID]
+4d   3   Play NPC Message      4d [WORD NPC Sound Message]
+4e   --   Unused            --------------
+4f   7   Click Button         4f [WORD button id] [WORD unknown] [WORD complement]
+50   9   Drop Gold         50 [DWORD player id] [DWORD gold pieces]
+51   9   Bind hotkey to skill      51 [BYTE skill]  [BYTE left (80) or right 00) skill] [WORD hotkey] FF FF FF FF
+52   5   <Unknown>         52 [DWORD unknown]
+53   1   Turn stamina on   (Not used)   53
+54   1   Turn stamina off (Not used)   54
+55   --   Unused            --------------
+56   --   Unused            --------------
+57   --   Unused            --------------
+58   3   Quest Completed         58 [WORD Quest id]
+59   17   Make entity move      59 [DWORD entity kind] [DWORD entity id] [WORD x] 00 00 [WORD y] 00 00
+5a   --   Unused            --------------
+5b   --   Unused            --------------
+5c   --   Unused            --------------
+5d   7   Squelch/Hostile         5d [BYTE button] [BYTE toggle on/off] [DWORD player id]
+5e   6   Invite Party         5e [BYTE button] [DWORD player id]
+5f   5   Update Player Pos      5f [WORD x] [WORD y]
+60   1   Swap weapons         60
+61   3   Drop/Pickup merc item      61 [WORD position (00 to drop)]
+62   5   Resurrect Merc         62 [DWORD npc id]
+63   5   Shift left-click item (to belt)   63 [DWORD item]
+64   9   <Hack Detection>         64 [DWORD unknown] [DWORD unknown]
+65   --   <Hack Detection>         65
+66   *   Warden Response         66 [BYTE Data Length] 00 [VARIABLE Data]
+67   --  --        --------------
+68   37   Game Join Request         68 [DWORD Server Hash] [WORD Server Token] [BYTE Char Type] [DWORD VerByte (0x0d)] [DWORD Unknown] [DWORD Unknown] 00 [Char Name[15]] 00
+69   1   Leave Game            69
+6a   --   --         --------------
+6b   1   Join Game            6b
+6c  262 Upload Character Save     6c [dwUnk] [dwUnk] [char[252] SaveFile]
+6d  13  Ping           6d [DWORD Tickcount] [DWORD Delay] [DWORD WardenResponse or 00000000]
+6e  --   Unknown/Unused            --------------
+6f   --   Unknown/Unused            --------------
