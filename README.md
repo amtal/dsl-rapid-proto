@@ -21,13 +21,14 @@ s2c = """
 
 gen = function(t) {
     console.log('\n\nnotes:\n', defines)
-    console.log(PPrint.matchAll(t,"packets"))
 
     console.log(PPrint.matchAll(t,"packets"))
+
     console.log('\n\npackets_c2s.h:\n', defines)
+
     console.log(SizeLUT.matchAll(t,"packets"))
-    console.log(Structs.matchAll(t,"packets"))
     console.log(Encode.matchAll(t,"packets"))
+    console.log(Structs.matchAll(t,"packets"))
 }
 
 gen(Parser.matchAll(c2s, "packets"))
