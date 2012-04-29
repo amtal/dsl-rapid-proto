@@ -103,11 +103,11 @@ Number   Size   Effect:            Usage:
 65   --   <Hack Detection>         65
 66   *   Warden Response         66 [BYTE Data Length] 00 [VARIABLE Data]
 67   --  --        --------------
-68   37   Game Join Request         68 [DWORD Server Hash] [WORD Server Token] [BYTE Char Type] [DWORD VerByte (0x0d)] [DWORD Unknown] [DWORD Unknown] 00 [Char Name[15]] 00
+68   37   Game Join Request         68 [DWORD Server Hash] [WORD Server Token] [BYTE Char Type] [DWORD VerByte (0x0d)] [DWORD Unknown] [DWORD Unknown] 00 [BYTES[15] Char Name] 00
 69   1   Leave Game            69
 6a   --   --         --------------
 6b   1   Join Game            6b
-6c  262 Upload Character Save     6c [dwUnk] [dwUnk] [char[252] SaveFile]
-6d  13  Ping           6d [DWORD Tickcount] [DWORD Delay] [DWORD WardenResponse or 00000000]
+6c  262 Upload Character Save     6c [dwUnk Unknown] [dwUnk Unknown] [char[252] SaveFile]
+6d  13  Ping           6d [DWORD Tickcount] [DWORD Delay] [DWORD WardenResponse (or 00000000)]
 6e  --   Unknown/Unused            --------------
 6f   --   Unknown/Unused            --------------
