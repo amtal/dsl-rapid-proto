@@ -283,7 +283,7 @@ ometa LUT <: Literals {
   lut = table*,
   table = ['table' ['Values' :size] [operand*:rows]]          -> ['operand', size, skip(rows)]
         | ['table' ['Basic opcodes' :size] [basic*:rows]]     -> ['basic',   size, skip(rows)]
-        | ['table' ['Special opcodes' :size] :rows]           -> ['special', size],
+        | ['table' ['Special opcodes' :size] [special*:rows]] -> ['special', size, skip(rows)],
   // cycle costs, machine codes, and memory targets of operands:
   operand = ['row' 'C' 'VALUE' 'DESCRIPTION']             -> ['skip']
           | ['row' decLit:cycles code:code target:target] -> [code, cycles, target]
@@ -301,19 +301,38 @@ ometa LUT <: Literals {
   basic = ['row' 'C' 'VAL' 'NAME' 'DESCRIPTION']              -> ['skip']
         | ['row' '-' code ['-' char*]]                        -> ['skip']
         | ['row_cont' :c :val :name :desc]                    -> ['skip'] // ignore for now, contains -some- data
-        | ['row' '-' code:code 'n/a' ["special" char*]]       -> [code, 'special']
+        | ['row' '-' code:code 'n/a' ["special" char*]]       -> ['skip'] // special instructions go here
         | ['row' cycles:cycles code:code instr:instr effect:effect] -> [code, cycles, instr, effect]
         | anything,
-  instr = [(~' ' char)+:cs seq(' b, a')] -> cs.join(''),
+  // special (one-operand) instructions:
+  special = [`row `C `VAL `NAME `DESCRIPTION] -> [`skip]
+          | [`row '-' :a :b] -> [`skip]
+          | [`row '-' :a :b :c] -> [`skip]
+          | [`row_cont '' '' '' :desc_cont] -> [`skip] // contains useful data, skip for now
+          | [`row cycles:cycles code:code instr:instr effect:effect] -> [code, cycles, instr, effect]
+          | anything,
+  // utility:
   cycles = [decLit:c]
-         | [decLit:c '+'] -> ['branch',c],
+         | [decLit:c '+'] -> ['minimum',c],
+  instr = [(~' ' char)+:cs seq(' b, a')] -> [cs.join(''), 2]
+        | [(~' ' char)+:cs seq(' a')] -> [cs.join(''), 1],
+  code = ['0' 'x' hexLit:x] -> x
+       | ['0' 'x' hexLit:from '-' '0' 'x' hexLit:to] -> ['range',from,to],
   effect = ["performs next instruction only if " char*:cond] -> ['branch', cond.join('')]
          | ["sets b to " char*:result] -> ['assign', result.join('')]
-         | anything,
-  // utility:
-  code = ['0' 'x' hexLit:x] -> x
-       | ['0' 'x' hexLit:from '-' '0' 'x' hexLit:to] -> ['range',from,to]
+         | anything
 }
 
 luts = LUT.matchAll(tables,'lut')
 console.log(JSON.parse(JSON.stringify(luts)))
+
+logJSON = function(x){console.log(JSON.parse(JSON.stringify(x)))}
+
+ometa PrintLUT {
+  luts = lut* -> 0,
+  lut [:name :bits [row*]] -> console.log(['\t(TABLE:', name, ' BITS:', bits, ')'].join('')),
+  row = [:code :cycles :name :effect]:x -> logJSON(x)
+      | [:code :cycles :effect]:x -> logJSON(x)
+}
+
+console.log(PrintLUT.matchAll(luts, 'luts'))
