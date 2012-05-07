@@ -1,6 +1,6 @@
 Rapid prototyping of domain specific languages via OMeta/JS.
 
-See http://amtal.github.com/2012/04/28/source-to-source-transforms-with-ometa
+See http://amtal.github.com/2012/04/28/rapid-prototyping-and-domain-specific-languages-with-ometa-js.html
 
 Resutls:
 --------
