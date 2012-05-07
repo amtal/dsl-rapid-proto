@@ -248,11 +248,12 @@ ometa Table {
              -> [name,size.slice(0,-5)],
   between :x :y = fromTo(x,y):s -> s.slice(1,-1),
   row = "---+" fromTo('-','\n')  -> ['skip']
-      | seq('   |') cells:cs     -> ['row_cont',''].concat(cs)
+      | seq('   | ') cells:cs    -> ['row_cont',''].concat(cs)
       | cell1:c cells:cs         -> ['row',c].concat(cs),
   cell1 = char:a char:b char:c '|'       -> str([a,b,c]),
-  cells = (~'|' ~'\n' char)+:cs '|' cells:rest -> [str(cs)].concat(rest)
-        | (~'\n' char)+:cs '\n'          -> [str(cs)]
+  cells = (~sep ~'\n' char)+:cs sep cells:rest -> [str(cs)].concat(rest)
+        | (~'\n' char)+:cs '\n'          -> [str(cs)],
+  sep = '|' ' '
 }
 
 test('Table',
@@ -278,9 +279,9 @@ tables = Doc.matchAll(spec,'tables')
 // table, and not hardcode any table-specific knowhow.
 ometa LUT <: Literals {
   lut = table*,
-  table = ['table' ['Values' :size] [operand*:rows]] -> ['operand', size,rows]
-        | ['table' ['Basic opcodes' :size] :rows]    -> ['basic',   size]
-        | ['table' ['Special opcodes' :size] :rows]  -> ['special', size],
+  table = ['table' ['Values' :size] [operand*:rows]]          -> ['operand', size, rows]
+        | ['table' ['Basic opcodes' :size] [basic*:rows]]     -> ['basic',   size, rows]
+        | ['table' ['Special opcodes' :size] :rows]           -> ['special', size],
   // cycle costs, machine codes, and memory targets of operands:
   operand = ['row' 'C' 'VALUE' 'DESCRIPTION']             -> ['skip']
           | ['row' decLit:cycles code:code target:target] -> [code, cycles, target]
@@ -294,6 +295,14 @@ ometa LUT <: Literals {
   reg = "next word" -> 'word'
       | "register" -> 'reg'
       | "SP" | "PC" | "EX",
+  // basic (two-operand) instruction cycle costs, machine codes, and operational semantics:
+  basic = ['row' 'C' 'VAL' 'NAME' 'DESCRIPTION'] -> ['skip']
+        | ['row_cont' :c :val :name :desc] -> ['skip'] // ignore for now, contains -some- data
+        | ['row' '-' code:code 'n/a' ["special" char*]] -> [code, 'special']
+        | ['row' decLit:cycles code:code instr:instr :effect] -> [code, cycles, instr, effect]
+        | :x -> x,
+  instr = [(~' ' char)+:cs seq(' b, a')] -> cs.join(''),
+  // utility:
   code = ['0' 'x' hexLit:x] -> x
        | ['0' 'x' hexLit:from '-' '0' 'x' hexLit:to] -> ['range',from,to]
 }
