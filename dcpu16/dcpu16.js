@@ -1,5 +1,6 @@
 // Slight modifications made:
-//   s/'Basic opcodes'/'Basic opcodes:'
+//   s/'Basic opcodes'/'Basic opcodes:'/
+//   s/next word (literal)/next word/
 spec = """DCPU-16 Specification
 Copyright 1985 Mojang
 Version 1.1
@@ -58,7 +59,7 @@ DESCRIPTION is a short text that describes the opcode or value.
  0 |      0x1c | PC
  0 |      0x1d | EX
  1 |      0x1e | [next word]
- 1 |      0x1f | next word (literal)
+ 1 |      0x1f | next word
  0 | 0x20-0x3f | literal value 0xffff-0x1e (-1..30) (literal) (only for a)
  --+-----------+----------------------------------------------------------------
   
@@ -281,12 +282,14 @@ ometa LUT <: Literals {
         | ['table' ['Basic opcodes' :size] :rows]    -> ['basic',   size]
         | ['table' ['Special opcodes' :size] :rows]  -> ['special', size],
   // cycle costs, machine codes, and memory targets of operands:
-  operand = ['row' 'C' 'VALUE' 'DESCRIPTION'] -> ['skip']
+  operand = ['row' 'C' 'VALUE' 'DESCRIPTION']             -> ['skip']
           | ['row' decLit:cycles code:code target:target] -> [code, cycles, target]
           | :x -> x,
-  target = '[' reg:r -> ['relative',r]
-         | reg:r     -> ['direct',r]
-         | '[register]' -> 'YARR'
+  target = ['[' reg:r seq(' + next word]') char*] -> ['offset',r]
+         | ['[' reg:r ']' char*]                  -> ['indirect',r]
+         | [reg:r char*]                          -> ['direct',r]
+         | ["(PUSH" char*]                        -> ['indirect', 'pushpop'] // dependant on whether a or b
+         | ["literal" char*]                      -> ['literal']
          | :x -> ['TODO',x],
   reg = "next word" -> 'word'
       | "register" -> 'reg'
@@ -306,4 +309,3 @@ ometa Asm <: Literals {
 }
 
 //console.log(Asm.matchAll('add #ff, b1111', 'code'))
-
