@@ -259,7 +259,7 @@ ometa Table {
 test('Table',
   [['head', '--- Values: (5/6 bits) --------\n', ['Values', '5/6']]
   ,['row',  '---+----\n',                        ['skip']]
-  ,['row',  '123|456|789\n',                     ['row','123','456','789']]
+  ,['row',  '123| 456| 789\n',                   ['row','123','456','789']]
   ,['row',  '   |      |       | then sets PC to a\n', ['row_cont','','','','then sets PC to a']]
 ])
 
@@ -273,14 +273,16 @@ ometa Doc <: Table {
 tables = Doc.matchAll(spec,'tables')
 //console.log(JSON.parse(JSON.stringify(tables)))
 
+skip = function(arr) {return arr.filter(function(x){return x[0]!='skip'})}
+
 // Transform text tables into something more useful.
 // Switching between pattern matching on [[][[][]]][]], and strings, seems impossible. Hm.
 // That's kind of annoying for what I'm trying to do - I'd like Table to work with -any- 
 // table, and not hardcode any table-specific knowhow.
 ometa LUT <: Literals {
   lut = table*,
-  table = ['table' ['Values' :size] [operand*:rows]]          -> ['operand', size, rows]
-        | ['table' ['Basic opcodes' :size] [basic*:rows]]     -> ['basic',   size, rows]
+  table = ['table' ['Values' :size] [operand*:rows]]          -> ['operand', size, skip(rows)]
+        | ['table' ['Basic opcodes' :size] [basic*:rows]]     -> ['basic',   size, skip(rows)]
         | ['table' ['Special opcodes' :size] :rows]           -> ['special', size],
   // cycle costs, machine codes, and memory targets of operands:
   operand = ['row' 'C' 'VALUE' 'DESCRIPTION']             -> ['skip']
@@ -296,12 +298,18 @@ ometa LUT <: Literals {
       | "register" -> 'reg'
       | "SP" | "PC" | "EX",
   // basic (two-operand) instruction cycle costs, machine codes, and operational semantics:
-  basic = ['row' 'C' 'VAL' 'NAME' 'DESCRIPTION'] -> ['skip']
-        | ['row_cont' :c :val :name :desc] -> ['skip'] // ignore for now, contains -some- data
-        | ['row' '-' code:code 'n/a' ["special" char*]] -> [code, 'special']
-        | ['row' decLit:cycles code:code instr:instr :effect] -> [code, cycles, instr, effect]
-        | :x -> x,
+  basic = ['row' 'C' 'VAL' 'NAME' 'DESCRIPTION']              -> ['skip']
+        | ['row' '-' code ['-' char*]]                        -> ['skip']
+        | ['row_cont' :c :val :name :desc]                    -> ['skip'] // ignore for now, contains -some- data
+        | ['row' '-' code:code 'n/a' ["special" char*]]       -> [code, 'special']
+        | ['row' cycles:cycles code:code instr:instr effect:effect] -> [code, cycles, instr, effect]
+        | anything,
   instr = [(~' ' char)+:cs seq(' b, a')] -> cs.join(''),
+  cycles = [decLit:c]
+         | [decLit:c '+'] -> ['branch',c],
+  effect = ["performs next instruction only if " char*:cond] -> ['branch', cond.join('')]
+         | ["sets b to " char*:result] -> ['assign', result.join('')]
+         | anything,
   // utility:
   code = ['0' 'x' hexLit:x] -> x
        | ['0' 'x' hexLit:from '-' '0' 'x' hexLit:to] -> ['range',from,to]
@@ -309,12 +317,3 @@ ometa LUT <: Literals {
 
 luts = LUT.matchAll(tables,'lut')
 console.log(JSON.parse(JSON.stringify(luts)))
-
-
-ometa Asm <: Literals {
-  code = i:i ' '* hex:a ',' ' '* hex:b -> [i,a,b],
-  hex = '#' hexLit | 'b' binLit | decLit,
-  i = "add" | "sub" | "mul" | "div"
-}
-
-//console.log(Asm.matchAll('add #ff, b1111', 'code'))
