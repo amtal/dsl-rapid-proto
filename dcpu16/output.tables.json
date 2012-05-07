@@ -1,0 +1,51 @@
+> logJSON(luts)
+[["operand", "5/6", [[["range", 0, 7], 0, ["direct", "reg"]], [["range", 8, 15], 0, ["indirect", "reg"]], [["range", 16, 23], 1, ["offset", "reg"]], [24, 0, ["indirect", "pushpop"]], [25, 0, ["indirect", "SP"]], [26, 0, ["offset", "SP"]], [27, 0, ["direct", "SP"]], [28, 0, ["direct", "PC"]], [29, 0, ["direct", "EX"]], [30, 1, ["indirect", "word"]], [31, 1, ["direct", "word"]], [["range", 32, 63], 0, ["literal"]]]], ["basic", "5", [[1, "1", ["SET", 2], ["assign", "a"]], [2, "2", ["ADD", 2], ["assign", "b+a, sets EX to 0x0001 if there's an overflow,"]], [3, "2", ["SUB", 2], ["assign", "b-a, sets EX to 0xffff if there's an underflow,"]], [4, "2", ["MUL", 2], ["assign", "b*a, sets EX to ((b*a)>>16)&0xffff (treats b,"]], [5, "2", ["MLI", 2], "like MUL, but treat b, a as signed"], [6, "3", ["DIV", 2], ["assign", "b/a, sets EX to ((b<<16)/a)&0xffff. if a==0,"]], [7, "3", ["DVI", 2], "like DIV, but treat b, a as signed"], [8, "3", ["MOD", 2], ["assign", "b%a. if a==0, sets b to 0 instead."]], [9, "1", ["AND", 2], ["assign", "b&a"]], [10, "1", ["BOR", 2], ["assign", "b|a"]], [11, "1", ["XOR", 2], ["assign", "b^a"]], [12, "2", ["SHR", 2], ["assign", "b>>>a, sets EX to ((b<<16)>>a)&0xffff"]], [13, "2", ["ASR", 2], ["assign", "b>>a, sets EX to ((b<<16)>>>a)&0xffff"]], [14, "2", ["SHL", 2], ["assign", "b<<a, sets EX to ((b<<a)>>16)&0xffff"]], [16, ["minimum", 2], ["IFB", 2], ["branch", "(b&a)!=0"]], [17, ["minimum", 2], ["IFC", 2], ["branch", "(b&a)==0"]], [18, ["minimum", 2], ["IFE", 2], ["branch", "b==a"]], [19, ["minimum", 2], ["IFN", 2], ["branch", "b!=a"]], [20, ["minimum", 2], ["IFG", 2], ["branch", "b>a"]], [21, ["minimum", 2], ["IFA", 2], ["branch", "b>a (signed)"]], [22, ["minimum", 2], ["IFL", 2], ["branch", "b<a"]], [23, ["minimum", 2], ["IFU", 2], ["branch", "b<a (signed)"]]]], ["special", "6", [[1, "3", ["JSR", 1], "pushes the address of the next instruction to the stack,"], [8, "4", ["INT", 1], "triggers a software interrupt with message a"], [9, "1", ["ING", 1], "sets a to IN"], [10, "1", ["INS", 1], "sets IN to a"], [16, "2", ["HWN", 1], "sets a to number of connected hardware devices"], [17, "4", ["HWQ", 1], "sets A, B, C, X, Y registers to information about hardware a"], [18, ["minimum", 4], ["HWI", 1], "sends an interrupt to hardware a"]]]]
+
+> Output of PrintLUT:
+
+[["range", 0, 7], 0, ["direct", "reg"]]
+[["range", 8, 15], 0, ["indirect", "reg"]]
+[["range", 16, 23], 1, ["offset", "reg"]]
+[24, 0, ["indirect", "pushpop"]]
+[25, 0, ["indirect", "SP"]]
+[26, 0, ["offset", "SP"]]
+[27, 0, ["direct", "SP"]]
+[28, 0, ["direct", "PC"]]
+[29, 0, ["direct", "EX"]]
+[30, 1, ["indirect", "word"]]
+[31, 1, ["direct", "word"]]
+[["range", 32, 63], 0, ["literal"]]
+	(TABLE:operand BITS:5/6)
+
+[1, "1", ["SET", 2], ["assign", "a"]]
+[2, "2", ["ADD", 2], ["assign", "b+a, sets EX to 0x0001 if there's an overflow,"]]
+[3, "2", ["SUB", 2], ["assign", "b-a, sets EX to 0xffff if there's an underflow,"]]
+[4, "2", ["MUL", 2], ["assign", "b*a, sets EX to ((b*a)>>16)&0xffff (treats b,"]]
+[5, "2", ["MLI", 2], "like MUL, but treat b, a as signed"]
+[6, "3", ["DIV", 2], ["assign", "b/a, sets EX to ((b<<16)/a)&0xffff. if a==0,"]]
+[7, "3", ["DVI", 2], "like DIV, but treat b, a as signed"]
+[8, "3", ["MOD", 2], ["assign", "b%a. if a==0, sets b to 0 instead."]]
+[9, "1", ["AND", 2], ["assign", "b&a"]]
+[10, "1", ["BOR", 2], ["assign", "b|a"]]
+[11, "1", ["XOR", 2], ["assign", "b^a"]]
+[12, "2", ["SHR", 2], ["assign", "b>>>a, sets EX to ((b<<16)>>a)&0xffff"]]
+[13, "2", ["ASR", 2], ["assign", "b>>a, sets EX to ((b<<16)>>>a)&0xffff"]]
+[14, "2", ["SHL", 2], ["assign", "b<<a, sets EX to ((b<<a)>>16)&0xffff"]]
+[16, ["minimum", 2], ["IFB", 2], ["branch", "(b&a)!=0"]]
+[17, ["minimum", 2], ["IFC", 2], ["branch", "(b&a)==0"]]
+[18, ["minimum", 2], ["IFE", 2], ["branch", "b==a"]]
+[19, ["minimum", 2], ["IFN", 2], ["branch", "b!=a"]]
+[20, ["minimum", 2], ["IFG", 2], ["branch", "b>a"]]
+[21, ["minimum", 2], ["IFA", 2], ["branch", "b>a (signed)"]]
+[22, ["minimum", 2], ["IFL", 2], ["branch", "b<a"]]
+[23, ["minimum", 2], ["IFU", 2], ["branch", "b<a (signed)"]]
+	(TABLE:basic BITS:5)
+
+[1, "3", ["JSR", 1], "pushes the address of the next instruction to the stack,"]
+[8, "4", ["INT", 1], "triggers a software interrupt with message a"]
+[9, "1", ["ING", 1], "sets a to IN"]
+[10, "1", ["INS", 1], "sets IN to a"]
+[16, "2", ["HWN", 1], "sets a to number of connected hardware devices"]
+[17, "4", ["HWQ", 1], "sets A, B, C, X, Y registers to information about hardware a"]
+[18, ["minimum", 4], ["HWI", 1], "sends an interrupt to hardware a"]
+	(TABLE:special BITS:6)
