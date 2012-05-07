@@ -1,6 +1,5 @@
 // Slight modifications made:
 //   s/'Basic opcodes'/'Basic opcodes:'/
-//   s/next word (literal)/next word/
 spec = """DCPU-16 Specification
 Copyright 1985 Mojang
 Version 1.1
@@ -59,7 +58,7 @@ DESCRIPTION is a short text that describes the opcode or value.
  0 |      0x1c | PC
  0 |      0x1d | EX
  1 |      0x1e | [next word]
- 1 |      0x1f | next word
+ 1 |      0x1f | next word (literal)
  0 | 0x20-0x3f | literal value 0xffff-0x1e (-1..30) (literal) (only for a)
  --+-----------+----------------------------------------------------------------
   
