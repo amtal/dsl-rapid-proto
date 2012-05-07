@@ -1,0 +1,5 @@
+Here's an attempt to generate an assembler+disassembler+interpreter for the DCPU16 architecture, based on the spec at http://dcpu.com/highnerd/dcpu16.txt
+
+Really the idea isn't to generate it - just parse the tables in the spec into nice LUTs full of instruction-machine code mappings and operational semantics.
+
+Highly experimental WIP, needless to say.
